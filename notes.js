@@ -1,36 +1,45 @@
 const fs = require('fs');
+const file = 'data.json';
 
-function loadNotes() {
-	const data = fs.readFileSync('data.json', 'utf-8');
-	return JSON.parse(data);
-}
-function saveNotes(notes) {
-	fs.writeFileSync('data.json', JSON.stringify(notes, null, 2));
+function loadTasks() {
+	if (!fs.existsSync(file)) return [];
+	return JSON.parse(fs.readFileSync(file, 'utf-8'));
 }
 
-function addNote(text) {
-	const notes = loadNotes();
-	notes.push(text);
-	saveNotes(notes);
-	console.log('Note added: ', text);
-}
-function listNotes() {
-	const notes = loadNotes();
-	notes.forEach((note, index) => {
-		console.log(`${index + 1}. ${note}`);
-	});
+function saveTasks(tasks) {
+	fs.writeFileSync(file, JSON.stringify(tasks, null, 2));
 }
 
-
-function deleteNotes(index) {
-	const notes = loadNotes();
-	if (index < 1 || index > notes.length) {
-		console.log('Invalid index');
-		return;
-	}
-	const removed = notes.splice(index - 1, 1);
-	saveNotes(notes);
-	console.log('Note deleted', removed[0]);
+function getTasks() {
+	return loadTasks();
 }
 
-module.exports = { addNote, listNotes, deleteNotes };
+function addTask(title) {
+	const tasks = loadTasks();
+	const task = { id: Date.now(), title, done: false };
+	tasks.push(task);
+	saveTasks(tasks);
+	return task;
+}
+
+function completeTask(id) {
+	const tasks = loadTasks();
+	const task = tasks.find(t => t.id == id);
+	if (task) task.done = true;
+	saveTasks(tasks);
+	return task;
+}
+
+function deleteTask(id) {
+	let tasks = loadTasks();
+	tasks = tasks.filter(t => t.id != id);
+	saveTasks(tasks);
+}
+
+module.exports = {
+	getTasks,
+	addTask,
+	completeTask,
+	deleteTask
+};
+
